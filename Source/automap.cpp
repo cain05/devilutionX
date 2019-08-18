@@ -435,9 +435,9 @@ void DrawAutomapType(int sx, int sy, WORD automap_type)
 
 void DrawAutomapPlr()
 {
-    for (int i=0; i<4; i++)
+    for (int i=0; i<MAX_PLRS; i++)
     {
-        if (plr[i].plractive && ((i == myplr) || FriendlyMode ))
+        if (i == myplr || (FriendlyMode && plr[i].plractive && plr[i].plrlevel == currlevel))
         {
 	        int px, py;
 	        int x, y;
