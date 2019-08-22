@@ -7,7 +7,7 @@ extern int storenumh;
 extern int stextlhold;
 extern ItemStruct boyitem;
 extern int stextshold;
-extern ItemStruct premiumitem[6];
+extern ItemStruct premiumitem[MAX_SMITH_PREMIUM_ITEMS];
 extern BYTE *pSTextBoxCels;
 extern int premiumlevel;
 extern int talker;

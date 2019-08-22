@@ -184,7 +184,7 @@ int ItemInvSnds[35] = {
 	IS_ISTAF
 };
 int idoppely = 16;
-int premiumlvladd[6] = { -1, -1, 0, 0, 1, 2 };
+int premiumlvladd[MAX_SMITH_PREMIUM_ITEMS] = { -1, -1, -1, -1, 0, 0, 0, 0, 1, 1, 2, 2 };
 
 void InitItemGFX()
 {
@@ -3476,21 +3476,36 @@ void SpawnPremium(int lvl)
 {
 	int i;
 
-	if (numpremium < 6) {
-		for (i = 0; i < 6; i++) {
+	//first time loading the items
+	if (numpremium < MAX_SMITH_PREMIUM_ITEMS) {
+		for (i = 0; i < MAX_SMITH_PREMIUM_ITEMS; i++) {
 			if (premiumitem[i]._itype == ITYPE_NONE)
 				SpawnOnePremium(i, premiumlevel + premiumlvladd[i]);
 		}
-		numpremium = 6;
+		numpremium = MAX_SMITH_PREMIUM_ITEMS;
 	}
+
+	//change items on level up
 	while (premiumlevel < lvl) {
 		premiumlevel++;
-		premiumitem[0] = premiumitem[2];
-		premiumitem[1] = premiumitem[3];
-		premiumitem[2] = premiumitem[4];
-		SpawnOnePremium(3, premiumlevel + premiumlvladd[3]);
-		premiumitem[4] = premiumitem[5];
-		SpawnOnePremium(5, premiumlevel + premiumlvladd[5]);
+
+		//move previous level+0 items up 
+		premiumitem[0] = premiumitem[4];
+		premiumitem[1] = premiumitem[5];
+		premiumitem[2] = premiumitem[6];
+		premiumitem[3] = premiumitem[7];
+
+		//move previous level+1 items up and spawn more
+		premiumitem[4] = premiumitem[8];
+		premiumitem[5] = premiumitem[9];
+		SpawnOnePremium(6, premiumlevel + premiumlvladd[6]);
+		SpawnOnePremium(7, premiumlevel + premiumlvladd[7]);
+
+		//move previous level+2 items up and spawn more
+		premiumitem[8] = premiumitem[10];
+		premiumitem[9] = premiumitem[11];
+		SpawnOnePremium(10, premiumlevel + premiumlvladd[10]);
+		SpawnOnePremium(11, premiumlevel + premiumlvladd[11]);
 	}
 }
 
@@ -3899,7 +3914,7 @@ void RecalcStoreStats()
 			smithitem[i]._iStatFlag = StoreStatOk(&smithitem[i]);
 		}
 	}
-	for (i = 0; i < 6; i++) {
+	for (i = 0; i < MAX_SMITH_PREMIUM_ITEMS; i++) {
 		if (premiumitem[i]._itype != ITYPE_NONE) {
 			premiumitem[i]._iStatFlag = StoreStatOk(&premiumitem[i]);
 		}

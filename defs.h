@@ -1,3 +1,6 @@
+// new definitions
+#define MAX_SMITH_PREMIUM_ITEMS 12
+
 // some global definitions, found in debug release
 
 #define DMAXX					40

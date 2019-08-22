@@ -134,6 +134,6 @@ extern BYTE ItemAnimLs[35];
 extern int ItemDropSnds[35];
 extern int ItemInvSnds[35];
 extern int idoppely;
-extern int premiumlvladd[6];
+extern int premiumlvladd[MAX_SMITH_PREMIUM_ITEMS];
 
 #endif /* __ITEMS_H__ */
