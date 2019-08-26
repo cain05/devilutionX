@@ -1955,7 +1955,7 @@ int CheckUnique(int i, int lvl, int uper, BOOL recreate)
 		    && (recreate || !UniqueItemFlag[j] || gbMaxPlayers != 1)) {
 			availableItems[numu]=j;
 			numu++;
-			if (UniqueItemList[j].UIMinLvl > maxUIMinLvl) {
+			if (UniqueItemList[j].UIMinLvl >= maxUIMinLvl) {
                 maxUIMinLvl = UniqueItemList[j].UIMinLvl;
                 idata = j;
 			}
