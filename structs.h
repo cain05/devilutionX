@@ -595,7 +595,7 @@ typedef struct MonsterStruct { // note: missing field _mAFNum
 	char mWhoHit;
 	char mLevel;
 	unsigned short mExp;
-	unsigned char mHit;
+	int mHit;
 	unsigned char mMinDamage;
 	unsigned char mMaxDamage;
 	unsigned char mHit2;
