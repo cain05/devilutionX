@@ -1509,6 +1509,11 @@ void InvGetItem(int pnum, int ii)
 
 void AutoGetItem(int pnum, int ii)
 {
+    if (pcurs != CURSOR_HAND) {
+        DrawInvMsg ("Nice try.\n");
+        return;
+    }
+
 	int i, idx;
 	int w, h;
 	BOOL done;
