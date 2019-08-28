@@ -170,128 +170,17 @@ int SpellPages[6][7] = {
 	{ -1, -1, -1, -1, -1, -1, -1 }
 };
 
-void DrawSpellCel(int xp, int yp, BYTE *Trans, int nCel, int w)
+void DrawSpellCel(int xp, int yp, BYTE *pCelBuff, int nCel, int nWidth)
 {
-	BYTE *dst, *tbl, *end;
-
-	/// ASSERT: assert(gpBuffer);
-
-	dst = &gpBuffer[xp + PitchTbl[yp]];
-	tbl = SplTransTbl;
-
-#ifdef USE_ASM
-	__asm {
-		mov		ebx, Trans
-		mov		eax, nCel
-		shl		eax, 2
-		add		ebx, eax
-		mov		eax, [ebx+4]
-		sub		eax, [ebx]
-		mov		end, eax
-		mov		esi, Trans
-		add		esi, [ebx]
-		mov		edi, dst
-		mov		eax, end
-		add		eax, esi
-		mov		end, eax
-		mov		ebx, tbl
-	label1:
-		mov		edx, w
-	label2:
-		xor		eax, eax
-		lodsb
-		or		al, al
-		js		label6
-		sub		edx, eax
-		mov		ecx, eax
-		shr		ecx, 1
-		jnb		label3
-		lodsb
-		xlat
-		stosb
-		jecxz	label5
-	label3:
-		shr		ecx, 1
-		jnb		label4
-		lodsw
-		xlat
-		ror		ax, 8
-		xlat
-		ror		ax, 8
-		stosw
-		jecxz	label5
-	label4:
-		lodsd
-		xlat
-		ror		eax, 8
-		xlat
-		ror		eax, 8
-		xlat
-		ror		eax, 8
-		xlat
-		ror		eax, 8
-		stosd
-		loop	label4
-	label5:
-		or		edx, edx
-		jz		label7
-		jmp		label2
-	label6:
-		neg		al
-		add		edi, eax
-		sub		edx, eax
-		jnz		label2
-	label7:
-		sub		edi, BUFFER_WIDTH
-		sub		edi, w
-		cmp		esi, end
-		jnz		label1
-	}
-#else
-	int i;
-	BYTE width;
-	BYTE *src;
+	int nDataSize;
+	BYTE *pRLEBytes;
 	DWORD *pFrameTable;
 
-	pFrameTable = (DWORD *)&Trans[4 * nCel];
-	src = &Trans[pFrameTable[0]];
-	end = &src[pFrameTable[1] - pFrameTable[0]];
+	pFrameTable = (DWORD *)pCelBuff;
+	pRLEBytes = &pCelBuff[pFrameTable[nCel]];
+	nDataSize = pFrameTable[nCel + 1] - pFrameTable[nCel];
 
-	for (; src != end; dst -= BUFFER_WIDTH + w) {
-		for (i = w; i;) {
-			width = *src++;
-			if (!(width & 0x80)) {
-				i -= width;
-				// asm_cel_light_edge(width, tbl, dst, src);
-				if (width & 1) {
-					dst[0] = tbl[src[0]];
-					src++;
-					dst++;
-				}
-				width >>= 1;
-				if (width & 1) {
-					dst[0] = tbl[src[0]];
-					dst[1] = tbl[src[1]];
-					src += 2;
-					dst += 2;
-				}
-				width >>= 1;
-				for (; width; width--) {
-					dst[0] = tbl[src[0]];
-					dst[1] = tbl[src[1]];
-					dst[2] = tbl[src[2]];
-					dst[3] = tbl[src[3]];
-					src += 4;
-					dst += 4;
-				}
-			} else {
-				width = -(char)width;
-				dst += width;
-				i -= width;
-			}
-		}
-	}
-#endif
+	CelDecDatLightOnly(&gpBuffer[xp + PitchTbl[yp]], pRLEBytes, nDataSize, nWidth, SplTransTbl);
 }
 
 void SetSpellTrans(char t)
@@ -560,220 +449,20 @@ void CPrintString(int nOffset, int nCel, char col)
 {
 	/// ASSERT: assert(gpBuffer);
 
-#ifdef USE_ASM
-	__asm {
-		mov		ebx, pPanelText
-		mov		eax, nCel
-		shl		eax, 2
-		add		ebx, eax
-		mov		edx, [ebx+4]
-		sub		edx, [ebx]
-		mov		esi, pPanelText
-		add		esi, [ebx]
-		mov		edi, gpBuffer
-		add		edi, nOffset
-		mov		ebx, edx
-		add		ebx, esi
-		xor		edx, edx
-		mov		dl, col
-		cmp		edx, COL_WHITE
-		jz		c0_label1
-		cmp		edx, COL_BLUE
-		jz		c1_label1
-		cmp		edx, COL_RED
-		jz		c2_label1
-		jmp		d_label1
-
-		            // Case 0
-	c0_label1:
-		mov		edx, 13
-	c0_label2:
-		xor		eax, eax
-		lodsb
-		or		al, al
-		js		c0_label6
-		sub		edx, eax
-		mov		ecx, eax
-		shr		ecx, 1
-		jnb		c0_label3
-		movsb
-		jecxz	c0_label5
-	c0_label3:
-		shr		ecx, 1
-		jnb		c0_label4
-		movsw
-		jecxz	c0_label5
-	c0_label4:
-		rep movsd
-	c0_label5:
-		or		edx, edx
-		jz		c0_label7
-		jmp		c0_label2
-	c0_label6:
-		neg		al
-		add		edi, eax
-		sub		edx, eax
-		jnz		c0_label2
-	c0_label7:
-		sub		edi, BUFFER_WIDTH + 13
-		cmp		ebx, esi
-		jnz		c0_label1
-		jmp		labret
-
-		            // Case 1
-	c1_label1:
-		mov		edx, 13
-	c1_label2:
-		xor		eax, eax
-		lodsb
-		or		al, al
-		js		c1_label6
-		sub		edx, eax
-		mov		ecx, eax
-	c1_label3:
-		lodsb
-		cmp		al, PAL16_GRAY + 13
-		ja		c1_label4
-		cmp		al, PAL16_GRAY
-		jb		c1_label5
-		sub		al, PAL16_GRAY - (PAL16_BLUE + 2)
-		jmp		c1_label5
-	c1_label4:
-		mov		al, PAL16_BLUE + 15
-	c1_label5:
-		stosb
-		loop	c1_label3
-		or		edx, edx
-		jz		c1_label7
-		jmp		c1_label2
-	c1_label6:
-		neg		al
-		add		edi, eax
-		sub		edx, eax
-		jnz		c1_label2
-	c1_label7:
-		sub		edi, BUFFER_WIDTH + 13
-		cmp		ebx, esi
-		jnz		c1_label1
-		jmp		labret
-
-		            // Case 2
-	c2_label1:
-		mov		edx, 13
-	c2_label2:
-		xor		eax, eax
-		lodsb
-		or		al, al
-		js		c2_label5
-		sub		edx, eax
-		mov		ecx, eax
-	c2_label3:
-		lodsb
-		cmp		al, PAL16_GRAY
-		jb		c2_label4
-		sub		al, PAL16_GRAY - PAL16_RED
-	c2_label4:
-		stosb
-		loop	c2_label3
-		or		edx, edx
-		jz		c2_label6
-		jmp		c2_label2
-	c2_label5:
-		neg		al
-		add		edi, eax
-		sub		edx, eax
-		jnz		c2_label2
-	c2_label6:
-		sub		edi, BUFFER_WIDTH + 13
-		cmp		ebx, esi
-		jnz		c2_label1
-		jmp		labret
-
-		            // Default
-	d_label1:
-		mov		edx, 13
-	d_label2:
-		xor		eax, eax
-		lodsb
-		or		al, al
-		js		d_label6
-		sub		edx, eax
-		mov		ecx, eax
-	d_label3:
-		lodsb
-		cmp		al, PAL16_GRAY
-		jb		d_label5
-		cmp		al, PAL16_GRAY + 14
-		jnb		d_label4
-		sub		al, PAL16_GRAY - (PAL16_YELLOW + 2)
-		jmp		d_label5
-	d_label4:
-		mov		al, PAL16_YELLOW + 15
-	d_label5:
-		stosb
-		loop	d_label3
-		or		edx, edx
-		jz		d_label7
-		jmp		d_label2
-	d_label6:
-		neg		al
-		add		edi, eax
-		sub		edx, eax
-		jnz		d_label2
-	d_label7:
-		sub		edi, BUFFER_WIDTH + 13
-		cmp		ebx, esi
-		jnz		d_label1
-
-	labret:
-	}
-#else
-	int i;
+	int i, nDataSize;
 	BYTE width, pix;
 	BYTE *src, *dst, *end;
 	DWORD *pFrameTable;
 
 	pFrameTable = (DWORD *)&pPanelText[4 * nCel];
 	src = &pPanelText[pFrameTable[0]];
-	end = &src[pFrameTable[1] - pFrameTable[0]];
+	nDataSize = pFrameTable[1] - pFrameTable[0];
+	end = &src[nDataSize];
 	dst = &gpBuffer[nOffset];
 
 	switch (col) {
 	case COL_WHITE:
-		for (; src != end; dst -= BUFFER_WIDTH + 13) {
-			for (i = 13; i;) {
-				width = *src++;
-				if (!(width & 0x80)) {
-					i -= width;
-					if (width & 1) {
-						dst[0] = src[0];
-						src++;
-						dst++;
-					}
-					width >>= 1;
-					if (width & 1) {
-						dst[0] = src[0];
-						dst[1] = src[1];
-						src += 2;
-						dst += 2;
-					}
-					width >>= 1;
-					while (width) {
-						dst[0] = src[0];
-						dst[1] = src[1];
-						dst[2] = src[2];
-						dst[3] = src[3];
-						src += 4;
-						dst += 4;
-						width--;
-					}
-				} else {
-					width = -(char)width;
-					dst += width;
-					i -= width;
-				}
-			}
-		}
+		CelDrawDatOnly(dst, src, nDataSize, 13);
 		break;
 	case COL_BLUE:
 		for (; src != end; dst -= BUFFER_WIDTH + 13) {
@@ -845,7 +534,6 @@ void CPrintString(int nOffset, int nCel, char col)
 		}
 		break;
 	}
-#endif
 }
 
 void AddPanelString(char *str, BOOL just)
@@ -872,38 +560,6 @@ void DrawPanelBox(int x, int y, int w, int h, int sx, int sy)
 	nSrcOff = x + PANEL_WIDTH * y;
 	nDstOff = sx + BUFFER_WIDTH * sy;
 
-#ifdef USE_ASM
-	__asm {
-		mov		esi, pBtmBuff
-		add		esi, nSrcOff
-		mov		edi, gpBuffer
-		add		edi, nDstOff
-		xor		ebx, ebx
-		mov		bx, word ptr w
-		xor		edx, edx
-		mov		dx, word ptr h
-	label1:
-		mov		ecx, ebx
-		shr		ecx, 1
-		jnb		label2
-		movsb
-		jecxz	label4
-	label2:
-		shr		ecx, 1
-		jnb		label3
-		movsw
-		jecxz	label4
-	label3:
-		rep movsd
-	label4:
-		add		esi, PANEL_WIDTH
-		sub		esi, ebx
-		add		edi, BUFFER_WIDTH
-		sub		edi, ebx
-		dec		edx
-		jnz		label1
-	}
-#else
 	int wdt, hgt;
 	BYTE *src, *dst;
 
@@ -935,7 +591,6 @@ void DrawPanelBox(int x, int y, int w, int h, int sx, int sy)
 			wdt--;
 		}
 	}
-#endif
 }
 
 void SetFlaskHeight(BYTE *pCelBuff, int min, int max, int c, int r)
@@ -948,21 +603,6 @@ void SetFlaskHeight(BYTE *pCelBuff, int min, int max, int c, int r)
 	nDstOff = c + BUFFER_WIDTH * r;
 	w = max - min;
 
-#ifdef USE_ASM
-	__asm {
-		mov		esi, pCelBuff
-		add		esi, nSrcOff
-		mov		edi, gpBuffer
-		add		edi, nDstOff
-		mov		edx, w
-	label1:
-		mov		ecx, 88 / 4
-		rep movsd
-		add		edi, BUFFER_WIDTH - 88
-		dec		edx
-		jnz		label1
-	}
-#else
 	BYTE *src, *dst;
 
 	src = &pCelBuff[nSrcOff];
@@ -970,35 +610,10 @@ void SetFlaskHeight(BYTE *pCelBuff, int min, int max, int c, int r)
 
 	for (; w; w--, src += 88, dst += BUFFER_WIDTH)
 		memcpy(dst, src, 88);
-#endif
 }
 
 void DrawFlask(BYTE *pCelBuff, int w, int nSrcOff, BYTE *pBuff, int nDstOff, int h)
 {
-#ifdef USE_ASM
-	__asm {
-		mov		esi, pCelBuff
-		add		esi, nSrcOff
-		mov		edi, pBuff
-		add		edi, nDstOff
-		mov		edx, h
-	label1:
-		mov		ecx, 59
-	label2:
-		lodsb
-		or		al, al
-		jz		label3
-		mov		[edi], al
-	label3:
-		inc		edi
-		loop	label2
-		add		esi, w
-		sub		esi, 59
-		add		edi, BUFFER_WIDTH - 59
-		dec		edx
-		jnz		label1
-	}
-#else
 	int wdt, hgt;
 	BYTE *src, *dst;
 
@@ -1013,7 +628,6 @@ void DrawFlask(BYTE *pCelBuff, int w, int nSrcOff, BYTE *pBuff, int nDstOff, int
 			dst++;
 		}
 	}
-#endif
 }
 
 void DrawLifeFlask()
@@ -1863,39 +1477,6 @@ void DrawChr()
 	ADD_PlrStringXY(143, 332, 174, chrstr, col);
 }
 
-/**
- * @brief Identical to MY_PlrStringXY(x, y, width, pszStr, col, 1)
- */
-void ADD_PlrStringXY(int x, int y, int width, char *pszStr, char col)
-{
-	BYTE c;
-	char *tmp;
-	int nOffset, screen_x, line, widthOffset;
-
-	nOffset = x + PitchTbl[y + SCREEN_Y] + 64;
-	widthOffset = width - x + 1;
-	line = 0;
-	screen_x = 0;
-	tmp = pszStr;
-	while (*tmp) {
-		c = gbFontTransTbl[(BYTE)*tmp++];
-		screen_x += fontkern[fontframe[c]] + 1;
-	}
-	if (screen_x < widthOffset)
-		line = (widthOffset - screen_x) >> 1;
-	nOffset += line;
-	while (*pszStr) {
-		c = gbFontTransTbl[(BYTE)*pszStr++];
-		c = fontframe[c];
-		line += fontkern[c] + 1;
-		if (c) {
-			if (line < widthOffset)
-				CPrintString(nOffset, c, col);
-		}
-		nOffset += fontkern[c] + 1;
-	}
-}
-
 void MY_PlrStringXY(int x, int y, int width, char *pszStr, char col, int base)
 {
 	BYTE c;
@@ -2083,48 +1664,6 @@ void RedBack()
 
 	/// ASSERT: assert(gpBuffer);
 
-#ifdef USE_ASM
-	if (leveltype != DTYPE_HELL) {
-		__asm {
-			mov		edi, gpBuffer
-			add		edi, SCREENXY(0, 0)
-			mov		ebx, pLightTbl
-			add		ebx, idx
-			mov		edx, PANEL_TOP
-		lx_label1:
-			mov		ecx, SCREEN_WIDTH
-		lx_label2:
-			mov		al, [edi]
-			xlat
-			stosb
-			loop	lx_label2
-			add		edi, BUFFER_WIDTH - SCREEN_WIDTH
-			dec		edx
-			jnz		lx_label1
-		}
-	} else {
-		__asm {
-			mov		edi, gpBuffer
-			add		edi, SCREENXY(0, 0)
-			mov		ebx, pLightTbl
-			add		ebx, idx
-			mov		edx, PANEL_TOP
-		l4_label1:
-			mov		ecx, SCREEN_WIDTH
-		l4_label2:
-			mov		al, [edi]
-			cmp		al, 32
-			jb		l4_label3
-			xlat
-		l4_label3:
-			stosb
-			loop	l4_label2
-			add		edi, BUFFER_WIDTH - SCREEN_WIDTH
-			dec		edx
-			jnz		l4_label1
-		}
-	}
-#else
 	int w, h;
 	BYTE *dst, *tbl;
 
@@ -2148,7 +1687,6 @@ void RedBack()
 			}
 		}
 	}
-#endif
 }
 
 char GetSBookTrans(int ii, BOOL townok)
@@ -2406,7 +1944,8 @@ void control_set_gold_curs(int pnum)
 }
 
 void DrawTalkPan()
-{	int i, off, talk_btn, color, nCel, x;
+{
+	int i, off, talk_btn, color, nCel, x;
 	char *msg;
 
 	off = 0;
