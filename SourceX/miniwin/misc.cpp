@@ -118,7 +118,7 @@ WINBOOL FindClose(HANDLE hFindFile)
  */
 UINT GetWindowsDirectoryA(LPSTR lpBuffer, UINT uSize)
 {
-	char *name = SDL_GetPrefPath("diasurgical", "devilution");
+	char *name = SDL_GetPrefPath("diasurgical", "difficulty_rebalance");
 	strncpy(lpBuffer, name, uSize);
 	SDL_free(name);
 
@@ -144,7 +144,7 @@ WINBOOL GetDiskFreeSpaceA(LPCSTR lpRootPathName, LPDWORD lpSectorsPerCluster, LP
  */
 DWORD GetModuleFileNameA(HMODULE hModule, LPSTR lpFilename, DWORD nSize)
 {
-	char *name = SDL_GetPrefPath("diasurgical", "devilution");
+	char *name = SDL_GetPrefPath("diasurgical", "difficulty_rebalance");
 	strncpy(lpFilename, name, nSize);
 	SDL_free(name);
 
@@ -230,7 +230,7 @@ WINBOOL DeleteFileA(LPCSTR lpFileName)
 	char name[DVL_MAX_PATH];
 	TranslateFileName(name, sizeof(name), lpFileName);
 
-	FILE *f = fopen(name, "r+"); 
+	FILE *f = fopen(name, "r+");
 	if (f) {
 		fclose(f);
 		remove(name);
