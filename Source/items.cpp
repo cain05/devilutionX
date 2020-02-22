@@ -1810,28 +1810,41 @@ void SetupItem(int i)
 		item[i]._iAnimFlag = FALSE;
 		item[i]._iSelFlag = 1;
 	}
+
+	//flag it as an item generated with the new routine
+	item[i]._iDelFlag = 1;
 }
 
+/**
+ * @brief Determines base item drop from regular monsters
+ * @param m index in MonsterData[]
+ * 
+ * @return the index of the element in AllItemList[] that was selected.
+ */
 int RndItem(int m)
 {
 	int i, ri;
 	int ril[512];
 
+	//special drops, 0x8000 = Leoric, 0x8000 = The Butcher
 	if ((monster[m].MData->mTreasure & 0x8000) != 0)
 		return -1 - (monster[m].MData->mTreasure & 0xFFF);
 
+	// 0X4000 = no item drop (i.e. Blinks)
 	if (monster[m].MData->mTreasure & 0x4000)
 		return 0;
 
-	if (random_(24, 100) > 40)
-		return 0;
+	//comment out to force item to be spawned
+	//if (random_(24, 100) > 40)
+	//		return 0;
 
-	if (random_(24, 100) > 25)
-		return 1;
+	// gold drop
+	//if (random_(24, 100) > 25)
+	//		return 1;
 
 	ri = 0;
 	for (i = 0; AllItemsList[i].iLoc != ILOC_INVALID; i++) {
-		if (AllItemsList[i].iRnd == 2 && monster[m].mLevel >= AllItemsList[i].iMinMLvl) {
+		if (AllItemsList[i].iRnd == IDROP_DOUBLE && monster[m].mLevel >= AllItemsList[i].iMinMLvl) {
 			ril[ri] = i;
 			ri++;
 		}
@@ -1848,6 +1861,12 @@ int RndItem(int m)
 	return ril[random_(24, ri)] + 1;
 }
 
+/**
+ * @brief Determines base item drop from unique monsters
+ * @param m index in MonsterData[]
+ * 
+ * @return the index of the element in AllItemList[] that was selected.
+ */
 int RndUItem(int m)
 {
 	int i, ri;
@@ -1941,36 +1960,44 @@ int RndTypeItems(int itype, int imid)
 
 int CheckUnique(int i, int lvl, int uper, BOOL recreate)
 {
-	int j, idata, numu;
-	BOOLEAN uok[128];
+	int j, idata, numu, maxUIMinLvl;
 
+	//comment out to always try and spawn unique item
 	if (random_(28, 100) > uper)
 		return -1;
 
+	int availableItems[128];
+	memset(availableItems, 0, sizeof(availableItems));
+
 	numu = 0;
-	memset(uok, 0, sizeof(uok));
+	idata = 0;
+	maxUIMinLvl = 0;
+
 	for (j = 0; UniqueItemList[j].UIItemId != UITYPE_INVALID; j++) {
 		if (UniqueItemList[j].UIItemId == AllItemsList[item[i].IDidx].iItemId
 		    && lvl >= UniqueItemList[j].UIMinLvl
 		    && (recreate || !UniqueItemFlag[j] || gbMaxPlayers != 1)) {
-			uok[j] = TRUE;
+			availableItems[numu] = j;
 			numu++;
+			if (UniqueItemList[j].UIMinLvl >= maxUIMinLvl) {
+				maxUIMinLvl = UniqueItemList[j].UIMinLvl;
+				idata = j;
+			}
+
+			maxUIMinLvl = (UniqueItemList[j].UIMinLvl > maxUIMinLvl) ? UniqueItemList[j].UIMinLvl : maxUIMinLvl;
 		}
 	}
 
 	if (!numu)
 		return -1;
 
-	random_(29, 10);
-	idata = 0;
-	while (numu > 0) {
-		if (uok[idata])
-			numu--;
-		if (numu > 0) {
-			idata++;
-			if (idata == 128)
-				idata = 0;
-		}
+	if (!recreate) {
+		random_(29, 10);
+		idata = availableItems[random_(29, numu)];
+	}
+
+	if (idata == 128) {
+		idata = 0;
 	}
 
 	return idata;
@@ -2067,13 +2094,21 @@ void SetupAllItems(int ii, int idx, int iseed, int lvl, int uper, int onlygood, 
 		}
 		if (onlygood)
 			iblvl = lvl;
-		if (uper == 15)
-			iblvl = lvl + 4;
+		if (uper == 15) {
+			if (!(recreate && item[ii]._iDelFlag)) {
+				iblvl = lvl + 4;
+			}
+		}
 		if (iblvl != -1) {
 			uid = CheckUnique(ii, iblvl, uper, recreate);
 			if (uid == UITYPE_INVALID) {
 				GetItemBonus(ii, idx, iblvl >> 1, iblvl, onlygood);
 			} else {
+				//force the create info level to be the same as the unique item's UIMinLvl and not the monster level.
+				//this prevents the item from morphing when loading a new game because the original unique item
+				//spawn code always chooses the unique item with the highest UIMinLvl
+				item[ii]._iCreateInfo -= lvl;
+				item[ii]._iCreateInfo += UniqueItemList[uid].UIMinLvl;
 				GetUniqueItem(ii, uid);
 				item[ii]._iCreateInfo |= 0x0200;
 			}
@@ -2092,19 +2127,22 @@ void SpawnItem(int m, int x, int y, BOOL sendmsg)
 	int ii, onlygood, idx;
 
 	if (monster[m]._uniqtype || ((monster[m].MData->mTreasure & 0x8000) && gbMaxPlayers != 1)) {
-		idx = RndUItem(m);
+		// unique monster drop multi-player
+		idx = RndUItem(m); //base item index in AllItemsList
 		if (idx < 0) {
 			SpawnUnique(-(idx + 1), x, y);
 			return;
 		}
 		onlygood = 1;
 	} else if (quests[QTYPE_BLKM]._qactive != 2 || quests[QTYPE_BLKM]._qvar1 != QS_MUSHGIVEN) {
-		idx = RndItem(m);
+		// normal monster drop
+		idx = RndItem(m); //base item index in AllItemsList
 		if (!idx)
 			return;
 		if (idx > 0) {
 			idx--;
 			onlygood = 0;
+			onlygood = 1; //set onlygood = 1 to make only magical drop
 		} else {
 			SpawnUnique(-(idx + 1), x, y);
 			return;
