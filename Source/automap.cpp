@@ -433,73 +433,77 @@ void DrawAutomapType(int sx, int sy, WORD automap_type)
 
 void DrawAutomapPlr()
 {
-	int px, py;
-	int x, y;
+	for (int i = 0; i < MAX_PLRS; i++) {
+		if (i == myplr || (FriendlyMode && plr[i].plractive && plr[i].plrlevel == currlevel)) {
+			int px, py;
+			int x, y;
 
-	if (plr[myplr]._pmode == PM_WALK3) {
-		x = plr[myplr]._px;
-		y = plr[myplr]._py;
-		if (plr[myplr]._pdir == DIR_W)
-			x++;
-		else
-			y++;
-	} else {
-		x = plr[myplr].WorldX;
-		y = plr[myplr].WorldY;
-	}
-	px = x - 2 * AutoMapXOfs - ViewX;
-	py = y - 2 * AutoMapYOfs - ViewY;
+			if (plr[i]._pmode == PM_WALK3) {
+				x = plr[i]._px;
+				y = plr[i]._py;
+				if (plr[i]._pdir == DIR_W)
+					x++;
+				else
+					y++;
+			} else {
+				x = plr[i].WorldX;
+				y = plr[i].WorldY;
+			}
+			px = x - 2 * AutoMapXOfs - ViewX;
+			py = y - 2 * AutoMapYOfs - ViewY;
 
-	x = (plr[myplr]._pxoff * AutoMapScale / 100 >> 1) + (ScrollInfo._sxoff * AutoMapScale / 100 >> 1) + (px - py) * AutoMapYPos + 384;
-	y = (plr[myplr]._pyoff * AutoMapScale / 100 >> 1) + (ScrollInfo._syoff * AutoMapScale / 100 >> 1) + (px + py) * AMPlayerX + 336;
+			x = (plr[i]._pxoff * AutoMapScale / 100 >> 1) + (ScrollInfo._sxoff * AutoMapScale / 100 >> 1) + (px - py) * AutoMapYPos + 384;
+			y = (plr[i]._pyoff * AutoMapScale / 100 >> 1) + (ScrollInfo._syoff * AutoMapScale / 100 >> 1) + (px + py) * AMPlayerX + 336;
 
-	if (invflag || sbookflag)
-		x -= 160;
-	if (chrflag || questlog)
-		x += 160;
-	y -= AMPlayerX;
+			if (invflag || sbookflag)
+				x -= 160;
+			if (chrflag || questlog)
+				x += 160;
+			y -= AMPlayerX;
 
-	switch (plr[myplr]._pdir) {
-	case DIR_N:
-		DrawLine(x, y, x, y - AutoMapYPos, COLOR_PLAYER);
-		DrawLine(x, y - AutoMapYPos, x - AMPlayerY, y - AMPlayerX, COLOR_PLAYER);
-		DrawLine(x, y - AutoMapYPos, x + AMPlayerY, y - AMPlayerX, COLOR_PLAYER);
-		break;
-	case DIR_NE:
-		DrawLine(x, y, x + AutoMapYPos, y - AMPlayerX, COLOR_PLAYER);
-		DrawLine(x + AutoMapYPos, y - AMPlayerX, x + AMPlayerX, y - AMPlayerX, COLOR_PLAYER);
-		DrawLine(x + AutoMapYPos, y - AMPlayerX, x + AMPlayerX + AMPlayerY, y, COLOR_PLAYER);
-		break;
-	case DIR_E:
-		DrawLine(x, y, x + AutoMapYPos, y, COLOR_PLAYER);
-		DrawLine(x + AutoMapYPos, y, x + AMPlayerX, y - AMPlayerY, COLOR_PLAYER);
-		DrawLine(x + AutoMapYPos, y, x + AMPlayerX, y + AMPlayerY, COLOR_PLAYER);
-		break;
-	case DIR_SE:
-		DrawLine(x, y, x + AutoMapYPos, y + AMPlayerX, COLOR_PLAYER);
-		DrawLine(x + AutoMapYPos, y + AMPlayerX, x + AMPlayerX + AMPlayerY, y, COLOR_PLAYER);
-		DrawLine(x + AutoMapYPos, y + AMPlayerX, x + AMPlayerX, y + AMPlayerX, COLOR_PLAYER);
-		break;
-	case DIR_S:
-		DrawLine(x, y, x, y + AutoMapYPos, COLOR_PLAYER);
-		DrawLine(x, y + AutoMapYPos, x + AMPlayerY, y + AMPlayerX, COLOR_PLAYER);
-		DrawLine(x, y + AutoMapYPos, x - AMPlayerY, y + AMPlayerX, COLOR_PLAYER);
-		break;
-	case DIR_SW:
-		DrawLine(x, y, x - AutoMapYPos, y + AMPlayerX, COLOR_PLAYER);
-		DrawLine(x - AutoMapYPos, y + AMPlayerX, x - AMPlayerY - AMPlayerX, y, COLOR_PLAYER);
-		DrawLine(x - AutoMapYPos, y + AMPlayerX, x - AMPlayerX, y + AMPlayerX, COLOR_PLAYER);
-		break;
-	case DIR_W:
-		DrawLine(x, y, x - AutoMapYPos, y, COLOR_PLAYER);
-		DrawLine(x - AutoMapYPos, y, x - AMPlayerX, y - AMPlayerY, COLOR_PLAYER);
-		DrawLine(x - AutoMapYPos, y, x - AMPlayerX, y + AMPlayerY, COLOR_PLAYER);
-		break;
-	case DIR_NW:
-		DrawLine(x, y, x - AutoMapYPos, y - AMPlayerX, COLOR_PLAYER);
-		DrawLine(x - AutoMapYPos, y - AMPlayerX, x - AMPlayerX, y - AMPlayerX, COLOR_PLAYER);
-		DrawLine(x - AutoMapYPos, y - AMPlayerX, x - AMPlayerY - AMPlayerX, y, COLOR_PLAYER);
-		break;
+			switch (plr[i]._pdir) {
+			case DIR_N:
+				DrawLine(x, y, x, y - AutoMapYPos, COLOR_PLAYER);
+				DrawLine(x, y - AutoMapYPos, x - AMPlayerY, y - AMPlayerX, COLOR_PLAYER);
+				DrawLine(x, y - AutoMapYPos, x + AMPlayerY, y - AMPlayerX, COLOR_PLAYER);
+				break;
+			case DIR_NE:
+				DrawLine(x, y, x + AutoMapYPos, y - AMPlayerX, COLOR_PLAYER);
+				DrawLine(x + AutoMapYPos, y - AMPlayerX, x + AMPlayerX, y - AMPlayerX, COLOR_PLAYER);
+				DrawLine(x + AutoMapYPos, y - AMPlayerX, x + AMPlayerX + AMPlayerY, y, COLOR_PLAYER);
+				break;
+			case DIR_E:
+				DrawLine(x, y, x + AutoMapYPos, y, COLOR_PLAYER);
+				DrawLine(x + AutoMapYPos, y, x + AMPlayerX, y - AMPlayerY, COLOR_PLAYER);
+				DrawLine(x + AutoMapYPos, y, x + AMPlayerX, y + AMPlayerY, COLOR_PLAYER);
+				break;
+			case DIR_SE:
+				DrawLine(x, y, x + AutoMapYPos, y + AMPlayerX, COLOR_PLAYER);
+				DrawLine(x + AutoMapYPos, y + AMPlayerX, x + AMPlayerX + AMPlayerY, y, COLOR_PLAYER);
+				DrawLine(x + AutoMapYPos, y + AMPlayerX, x + AMPlayerX, y + AMPlayerX, COLOR_PLAYER);
+				break;
+			case DIR_S:
+				DrawLine(x, y, x, y + AutoMapYPos, COLOR_PLAYER);
+				DrawLine(x, y + AutoMapYPos, x + AMPlayerY, y + AMPlayerX, COLOR_PLAYER);
+				DrawLine(x, y + AutoMapYPos, x - AMPlayerY, y + AMPlayerX, COLOR_PLAYER);
+				break;
+			case DIR_SW:
+				DrawLine(x, y, x - AutoMapYPos, y + AMPlayerX, COLOR_PLAYER);
+				DrawLine(x - AutoMapYPos, y + AMPlayerX, x - AMPlayerY - AMPlayerX, y, COLOR_PLAYER);
+				DrawLine(x - AutoMapYPos, y + AMPlayerX, x - AMPlayerX, y + AMPlayerX, COLOR_PLAYER);
+				break;
+			case DIR_W:
+				DrawLine(x, y, x - AutoMapYPos, y, COLOR_PLAYER);
+				DrawLine(x - AutoMapYPos, y, x - AMPlayerX, y - AMPlayerY, COLOR_PLAYER);
+				DrawLine(x - AutoMapYPos, y, x - AMPlayerX, y + AMPlayerY, COLOR_PLAYER);
+				break;
+			case DIR_NW:
+				DrawLine(x, y, x - AutoMapYPos, y - AMPlayerX, COLOR_PLAYER);
+				DrawLine(x - AutoMapYPos, y - AMPlayerX, x - AMPlayerX, y - AMPlayerX, COLOR_PLAYER);
+				DrawLine(x - AutoMapYPos, y - AMPlayerX, x - AMPlayerY - AMPlayerX, y, COLOR_PLAYER);
+				break;
+			}
+		}
 	}
 }
 
