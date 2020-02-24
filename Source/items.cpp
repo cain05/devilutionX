@@ -1876,7 +1876,7 @@ int RndUItem(int m)
 		if (AllItemsList[i].itype == ITYPE_0E)
 			okflag = FALSE;
 		if (AllItemsList[i].iMiscId == IMISC_BOOK)
-			okflag = TRUE;
+			okflag = FALSE;
 		if (AllItemsList[i].iSpell == SPL_RESURRECT && gbMaxPlayers == 1)
 			okflag = FALSE;
 		if (AllItemsList[i].iSpell == SPL_HEALOTHER && gbMaxPlayers == 1)
