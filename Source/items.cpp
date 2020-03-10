@@ -184,7 +184,7 @@ int ItemInvSnds[ITEMTYPES] = {
 	IS_ISTAF
 };
 int idoppely = 16;
-int premiumlvladd[6] = { -1, -1, 0, 0, 1, 2 };
+int premiumlvladd[SMITH_PREMIUM_ITEMS] = { -1, -1, -1, -1, 0, 0, 0, 0, 1, 1, 2, 2 };
 
 void InitItemGFX()
 {
@@ -3510,12 +3510,24 @@ void SpawnPremium(int lvl)
 	}
 	while (premiumlevel < lvl) {
 		premiumlevel++;
-		premiumitem[0] = premiumitem[2];
-		premiumitem[1] = premiumitem[3];
-		premiumitem[2] = premiumitem[4];
-		SpawnOnePremium(3, premiumlevel + premiumlvladd[3]);
-		premiumitem[4] = premiumitem[5];
-		SpawnOnePremium(5, premiumlevel + premiumlvladd[5]);
+
+		//move previous level+0 items up
+		premiumitem[0] = premiumitem[4];
+		premiumitem[1] = premiumitem[5];
+		premiumitem[2] = premiumitem[6];
+		premiumitem[3] = premiumitem[7];
+
+		//move previous level+1 items up and spawn more
+		premiumitem[4] = premiumitem[8];
+		premiumitem[5] = premiumitem[9];
+		SpawnOnePremium(6, premiumlevel + premiumlvladd[6]);
+		SpawnOnePremium(7, premiumlevel + premiumlvladd[7]);
+
+		//move previous level+2 items up and spawn more
+		premiumitem[8] = premiumitem[10];
+		premiumitem[9] = premiumitem[11];
+		SpawnOnePremium(10, premiumlevel + premiumlvladd[10]);
+		SpawnOnePremium(11, premiumlevel + premiumlvladd[11]);
 	}
 }
 

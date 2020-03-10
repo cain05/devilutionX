@@ -51,7 +51,7 @@
 // todo: enums
 #define NUMLEVELS				17
 #define SMITH_ITEMS				20
-#define SMITH_PREMIUM_ITEMS		6
+#define SMITH_PREMIUM_ITEMS		12
 #define SMITH_MAX_VALUE			140000
 #define SMITH_MAX_PREMIUM_VALUE 140000
 
