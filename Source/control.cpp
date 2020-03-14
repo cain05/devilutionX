@@ -148,14 +148,14 @@ char SpellITbl[MAX_SPELLS] = {
 	30,
 };
 int PanBtnPos[8][5] = {
-	{ PANEL_LEFT +   9, PANEL_TOP +   9, 71, 19, 1 }, // char button
-	{ PANEL_LEFT +   9, PANEL_TOP +  35, 71, 19, 0 }, // quests button
-	{ PANEL_LEFT +   9, PANEL_TOP +  75, 71, 19, 1 }, // map button
-	{ PANEL_LEFT +   9, PANEL_TOP + 101, 71, 19, 0 }, // menu button
-	{ PANEL_LEFT + 560, PANEL_TOP +   9, 71, 19, 1 }, // inv button
-	{ PANEL_LEFT + 560, PANEL_TOP +  35, 71, 19, 0 }, // spells button
-	{ PANEL_LEFT +  87, PANEL_TOP +  91, 33, 32, 1 }, // chat button
-	{ PANEL_LEFT + 527, PANEL_TOP +  91, 33, 32, 1 }, // friendly fire button
+	{ PANEL_LEFT + 9, PANEL_TOP + 9, 71, 19, 1 },    // char button
+	{ PANEL_LEFT + 9, PANEL_TOP + 35, 71, 19, 0 },   // quests button
+	{ PANEL_LEFT + 9, PANEL_TOP + 75, 71, 19, 1 },   // map button
+	{ PANEL_LEFT + 9, PANEL_TOP + 101, 71, 19, 0 },  // menu button
+	{ PANEL_LEFT + 560, PANEL_TOP + 9, 71, 19, 1 },  // inv button
+	{ PANEL_LEFT + 560, PANEL_TOP + 35, 71, 19, 0 }, // spells button
+	{ PANEL_LEFT + 87, PANEL_TOP + 91, 33, 32, 1 },  // chat button
+	{ PANEL_LEFT + 527, PANEL_TOP + 91, 33, 32, 1 }, // friendly fire button
 };
 char *PanBtnHotKey[8] = { "'c'", "'q'", "Tab", "Esc", "'i'", "'b'", "Enter", NULL };
 char *PanBtnStr[8] = {
@@ -434,6 +434,50 @@ void SetSpeedSpell(int slot)
 	}
 }
 
+void TogglePrevSpell(int cur_slot)
+{
+	int prev = GetPrevSpellSlot(cur_slot);
+
+	if (prev != plr[myplr].pCurSpeedSpell) {
+		int next = GetNextSpellSlot(cur_slot);
+		int player_spell = plr[myplr].pCurSpeedSpell;
+		ToggleSpell(prev);
+		if (player_spell == plr[myplr].pCurSpeedSpell) {
+			TogglePrevSpell(prev);
+		}
+	}
+}
+
+void ToggleNextSpell(int cur_slot)
+{
+	int next = GetNextSpellSlot(cur_slot);
+
+	if (next != plr[myplr].pCurSpeedSpell) {
+		int prev = GetPrevSpellSlot(cur_slot);	
+		int player_spell = plr[myplr].pCurSpeedSpell;
+		ToggleSpell(next);
+		if (player_spell == plr[myplr].pCurSpeedSpell) {
+			ToggleNextSpell(next);
+		}
+	}
+}
+
+int GetNextSpellSlot(int cur) {
+	int next = cur + 1;
+	if (next > 3) {
+		next = 0;
+	}
+	return next;
+}
+
+int GetPrevSpellSlot(int cur) {
+	int prev = cur - 1;
+	if (prev < 0) {
+		prev = 3;
+	}
+	return prev;
+}
+
 void ToggleSpell(int slot)
 {
 	unsigned __int64 spells;
@@ -461,6 +505,7 @@ void ToggleSpell(int slot)
 		plr[myplr]._pRSpell = plr[myplr]._pSplHotKey[slot];
 		plr[myplr]._pRSplType = plr[myplr]._pSplTHotKey[slot];
 		force_redraw = 255;
+		plr[myplr].pCurSpeedSpell = slot;
 	}
 }
 
@@ -2107,7 +2152,7 @@ void control_reset_talk_msg(char *msg)
 		if (whisper[i])
 			pmask |= 1 << i;
 	}
-		NetSendCmdString(pmask, sgszTalkMsg);
+	NetSendCmdString(pmask, sgszTalkMsg);
 }
 
 void control_type_message()

@@ -37,9 +37,7 @@ void LoadGame(BOOL firstflag)
 	for (i = 0; i < NUMLEVELS; i++) {
 		glSeedTbl[i] = ILoad();
 		gnLevelTypeTbl[i] = WLoad();
-	}
-
-	LoadPlayer(myplr);
+	}(myplr);
 
 	for (i = 0; i < MAXQUESTS; i++)
 		LoadQuest(i);
@@ -453,6 +451,7 @@ void LoadPlayer(int i)
 	CopyInts(tbuff, 7, &pPlayer->dwReserved);
 
 	pPlayer->_pBaseToBlk = ToBlkTbl[pPlayer->_pClass];
+	pPlayer->pCurSpeedSpell = 0;
 
 	// Omit pointer _pNData
 	// Omit pointer _pWData

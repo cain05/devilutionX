@@ -347,6 +347,7 @@ typedef struct PlayerStruct {
 	unsigned char *_pHData;
 	unsigned char *_pDData;
 	unsigned char *_pBData;
+	unsigned char pCurSpeedSpell;
 	void *pReserved;
 } PlayerStruct;
 

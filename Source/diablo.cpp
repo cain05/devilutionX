@@ -971,8 +971,8 @@ void PressKey(int vkey)
 			QuestlogUp();
 		} else if (helpflag) {
 			HelpScrollUp();
-		} else if (automapflag) {
-			AutomapUp();
+		} else {
+			TogglePrevSpell(plr[myplr].pCurSpeedSpell);
 		}
 	} else if (vkey == VK_DOWN) {
 		if (stextflag) {
@@ -981,8 +981,8 @@ void PressKey(int vkey)
 			QuestlogDown();
 		} else if (helpflag) {
 			HelpScrollDown();
-		} else if (automapflag) {
-			AutomapDown();
+		} else {
+			ToggleNextSpell(plr[myplr].pCurSpeedSpell);
 		}
 	} else if (vkey == VK_PRIOR) {
 		if (stextflag) {

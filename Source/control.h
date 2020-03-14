@@ -118,6 +118,11 @@ BOOL control_presskeys(int vkey);
 void control_press_enter();
 void control_up_down(int v);
 
+void TogglePrevSpell(int cur_slot);
+void ToggleNextSpell(int cur_slot);
+int GetPrevSpellSlot(int cur);
+int GetNextSpellSlot(int cur);
+
 /* rdata */
 extern const BYTE fontframe[128];
 extern const BYTE fontkern[68];
